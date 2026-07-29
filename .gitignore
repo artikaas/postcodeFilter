@@ -17,6 +17,10 @@ dist-ssr
 .env.*
 !.env.example
 
+# Lokale backups van scraper-resultaten (kunnen persoonsgegevens/adressen
+# van gescrapete initiatieven bevatten, horen niet in git)
+scripts/output/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

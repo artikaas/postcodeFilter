@@ -91,6 +91,19 @@ npm run scrape -- "Amsterdam" "Utrecht"
 npm run scrape
 ```
 
+**Backup en herstel:** vóór elke Supabase-upload schrijft het script de
+gevonden (en gegeocodeerde) initiatieven altijd eerst naar een lokaal
+JSON-bestand in `scripts/output/` (niet in git, staat in `.gitignore`).
+Gaat de upload daarna om wat voor reden dan ook mis, dan ben je het
+gevonden werk en de daaraan bestede AI-credits niet kwijt: upload dezelfde
+data opnieuw zonder opnieuw te zoeken met:
+```bash
+node scripts/scrape-initiatives.mjs --from-backup scripts/output/<bestand>.json
+```
+Dit gebruikt alleen de Supabase-keys, geen Anthropic API-key nodig.
+Uploaden gebeurt rij voor rij (niet als één batch), zodat één conflicterend
+of foutief resultaat niet de rest blokkeert.
+
 **Bronbetrouwbaarheid:** de AI slaat een initiatief alleen op als de bron
 recent is (≤ 6 maanden) of van een herkenbare zorg-/welzijnsinstantie komt
 (zorgorganisatie, gemeente, welzijnsstichting, ouderenbond,

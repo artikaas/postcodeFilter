@@ -7,16 +7,29 @@
 //   node scripts/scrape-initiatives.mjs "Ootmarsum" "Enschede" "Almelo"
 //   node scripts/scrape-initiatives.mjs                # gebruikt DEFAULT_LOCATIONS
 //
+// Voordat er iets naar Supabase gaat, wordt de verzamelde data altijd eerst
+// lokaal opgeslagen in scripts/output/. Gaat de Supabase-upload om wat voor
+// reden dan ook mis, dan zijn de resultaten (en de AI-credits die dat kostte)
+// dus niet weg: herstel ze zonder opnieuw te zoeken met:
+//   node scripts/scrape-initiatives.mjs --from-backup scripts/output/<bestand>.json
+//
 // Vereist in .env (zie .env.example):
 //   ANTHROPIC_API_KEY, VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+//   (--from-backup heeft alleen VITE_SUPABASE_URL en SUPABASE_SERVICE_ROLE_KEY nodig)
 //
 // Dit script draait bewust NIET automatisch/live vanuit de browser: het
 // gebruikt de service-role key en een Anthropic API-key, die nooit in de
 // frontend-bundle terecht mogen komen.
 
 import 'dotenv/config';
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
+
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+const OUTPUT_DIR = join(SCRIPT_DIR, 'output');
 
 // Twente, van grotere steden tot kleinere kernen, zodat ook plattelands-
 // initiatieven meegenomen worden. Vul aan met eigen plaatsen via CLI-argumenten.
@@ -53,12 +66,22 @@ function requireEnv(name) {
   return value;
 }
 
-const anthropicKey = requireEnv('ANTHROPIC_API_KEY');
+const fromBackupIndex = process.argv.indexOf('--from-backup');
+const fromBackupPath = fromBackupIndex !== -1 ? process.argv[fromBackupIndex + 1] : null;
+if (fromBackupIndex !== -1 && !fromBackupPath) {
+  console.error('Gebruik: node scripts/scrape-initiatives.mjs --from-backup <pad-naar-json>');
+  process.exit(1);
+}
+
 const supabaseUrl = requireEnv('VITE_SUPABASE_URL');
 const supabaseServiceKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
-
-const anthropic = new Anthropic({ apiKey: anthropicKey });
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+// Alleen nodig om nieuwe initiatieven te zoeken, niet om een backup opnieuw
+// te uploaden.
+const anthropic = fromBackupPath
+  ? null
+  : new Anthropic({ apiKey: requireEnv('ANTHROPIC_API_KEY') });
 
 const RECORD_TOOL = {
   name: 'record_initiative',
@@ -204,8 +227,62 @@ async function geocode(entry) {
   return { latitude: Number(lat), longitude: Number(lon) };
 }
 
-async function main() {
-  const locations = process.argv.slice(2);
+/** Laatste rij per (name, city) wint. Voorkomt de Postgres-fout "ON CONFLICT
+ * DO UPDATE command cannot affect row a second time", die optreedt als een
+ * enkele upsert-aanroep dezelfde conflict-key twee keer in dezelfde batch
+ * bevat (bijv. omdat de AI hetzelfde initiatief via twee plaatsen vond). */
+function dedupeByNameAndCity(rows) {
+  const byKey = new Map();
+  for (const row of rows) {
+    byKey.set(`${row.name}|${row.city ?? ''}`, row);
+  }
+  return [...byKey.values()];
+}
+
+function writeBackup(rows) {
+  mkdirSync(OUTPUT_DIR, { recursive: true });
+  const filename = `scrape-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+  const path = join(OUTPUT_DIR, filename);
+  writeFileSync(path, JSON.stringify(rows, null, 2));
+  return path;
+}
+
+/** Upload rij voor rij (niet als één batch): zo blokkeert één conflicterende
+ * of foutieve rij niet de rest, en kan Postgres nooit "dezelfde rij twee keer
+ * in één statement" tegenkomen. */
+async function uploadRows(rows) {
+  const deduped = dedupeByNameAndCity(rows);
+  if (deduped.length !== rows.length) {
+    console.log(`  ${rows.length - deduped.length} dubbele (naam + plaats) verwijderd vóór upload.`);
+  }
+
+  let saved = 0;
+  let failed = 0;
+  for (const row of deduped) {
+    const { error } = await supabase.from('initiatives').upsert(row, { onConflict: 'name,city' });
+    if (error) {
+      failed += 1;
+      console.error(`  Opslaan mislukt voor "${row.name}" (${row.city}): ${error.message}`);
+    } else {
+      saved += 1;
+    }
+  }
+  return { saved, failed, total: deduped.length };
+}
+
+async function runFromBackup(path) {
+  console.log(`Backup laden vanaf ${path}...`);
+  const rows = JSON.parse(readFileSync(path, 'utf8'));
+  console.log(`${rows.length} initiatieven gevonden in backup, uploaden naar Supabase...`);
+  const { saved, failed, total } = await uploadRows(rows);
+  console.log(`\nKlaar. ${saved}/${total} initiatieven opgeslagen/bijgewerkt in Supabase.`);
+  if (failed > 0) {
+    console.log(`${failed} rij(en) faalden, zie foutmeldingen hierboven. De backup-file blijft staan.`);
+  }
+}
+
+async function runScrape() {
+  const locations = process.argv.slice(2).filter((arg) => arg !== '--from-backup');
   const targets = locations.length > 0 ? locations : DEFAULT_LOCATIONS;
 
   console.log(`Zoeken naar initiatieven in: ${targets.join(', ')}`);
@@ -227,7 +304,7 @@ async function main() {
     return;
   }
 
-  console.log(`\nGeocoden en opslaan van ${allEntries.length} initiatieven...`);
+  console.log(`\nGeocoden van ${allEntries.length} initiatieven...`);
   const rows = [];
   for (const entry of allEntries) {
     if (!VALID_CATEGORIES.includes(entry.category)) {
@@ -256,17 +333,29 @@ async function main() {
     return;
   }
 
-  const { error, data } = await supabase
-    .from('initiatives')
-    .upsert(rows, { onConflict: 'name,city' })
-    .select('id');
+  // Altijd eerst lokaal bewaren: gaat de upload hierna mis, dan is het
+  // gevonden werk (en de AI-credits die dat kostte) niet weg. Herstel met
+  // --from-backup <pad>.
+  const backupPath = writeBackup(rows);
+  console.log(`Backup weggeschreven naar ${backupPath}.`);
 
-  if (error) {
-    console.error('Opslaan in Supabase mislukt:', error.message);
-    process.exit(1);
+  console.log(`Uploaden naar Supabase...`);
+  const { saved, failed, total } = await uploadRows(rows);
+  console.log(`\nKlaar. ${saved}/${total} initiatieven opgeslagen/bijgewerkt in Supabase.`);
+  if (failed > 0) {
+    console.log(
+      `${failed} rij(en) faalden, zie foutmeldingen hierboven. Herstel zonder opnieuw te ` +
+        `zoeken met: node scripts/scrape-initiatives.mjs --from-backup ${backupPath}`
+    );
   }
+}
 
-  console.log(`\nKlaar. ${data.length} initiatieven opgeslagen/bijgewerkt in Supabase.`);
+async function main() {
+  if (fromBackupPath) {
+    await runFromBackup(fromBackupPath);
+  } else {
+    await runScrape();
+  }
 }
 
 main();
