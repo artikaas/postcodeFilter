@@ -38,7 +38,7 @@ const DEFAULT_LOCATIONS = [
   'Losser',
   'Delden',
 ];
-const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5';
+const MODEL = process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001';
 const MAX_TOOL_ROUNDS = 6;
 const SEARCH_RADIUS_HINT_KM = 15;
 
