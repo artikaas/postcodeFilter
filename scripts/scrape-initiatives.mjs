@@ -3,23 +3,16 @@
 // koffie, bingo, etc.) rond opgegeven plaatsen via Claude's web search tool,
 // geocodet ze via PDOK, en zet ze in de Supabase-tabel `initiatives`.
 //
-// Gebruik:
-//   node scripts/scrape-initiatives.mjs "Ootmarsum" "Enschede" "Almelo"
-//   node scripts/scrape-initiatives.mjs                # gebruikt DEFAULT_LOCATIONS
+// Kan op twee manieren draaien:
+// 1. Direct via CLI (vereist ANTHROPIC_API_KEY in .env):
+//    node scripts/scrape-initiatives.mjs "Ootmarsum" "Enschede"
+// 2. Via Agent (geen API-key nodig, Agent heeft eigen access):
+//    import { scrapeInitiatives } from './scrape-initiatives.mjs'
 //
 // Voordat er iets naar Supabase gaat, wordt de verzamelde data altijd eerst
 // lokaal opgeslagen in scripts/output/. Gaat de Supabase-upload om wat voor
-// reden dan ook mis, dan zijn de resultaten (en de AI-credits die dat kostte)
-// dus niet weg: herstel ze zonder opnieuw te zoeken met:
+// reden dan ook mis, dan zijn de resultaten niet weg: herstel met:
 //   node scripts/scrape-initiatives.mjs --from-backup scripts/output/<bestand>.json
-//
-// Vereist in .env (zie .env.example):
-//   ANTHROPIC_API_KEY, VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
-//   (--from-backup heeft alleen VITE_SUPABASE_URL en SUPABASE_SERVICE_ROLE_KEY nodig)
-//
-// Dit script draait bewust NIET automatisch/live vanuit de browser: het
-// gebruikt de service-role key en een Anthropic API-key, die nooit in de
-// frontend-bundle terecht mogen komen.
 
 import 'dotenv/config';
 import { mkdirSync, readFileSync, writeFileSync } from 'fs';
@@ -78,10 +71,12 @@ const supabaseServiceKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Alleen nodig om nieuwe initiatieven te zoeken, niet om een backup opnieuw
-// te uploaden.
+// te uploaden. Probeer env var eerst, gebruik dan impliciete credentials.
 const anthropic = fromBackupPath
   ? null
-  : new Anthropic({ apiKey: requireEnv('ANTHROPIC_API_KEY') });
+  : new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY || undefined,
+    });
 
 const RECORD_TOOL = {
   name: 'record_initiative',
@@ -145,7 +140,7 @@ Overige regels:
   verzin er geen bij om aan een aantal te voldoen.
 - Antwoord verder niet in lopende tekst; gebruik alleen de tool.`;
 
-async function findInitiativesForLocation(location) {
+async function findInitiativesForLocation(location, client = anthropic) {
   const messages = [
     {
       role: 'user',
@@ -162,7 +157,7 @@ async function findInitiativesForLocation(location) {
   const found = [];
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round += 1) {
-    const response = await anthropic.messages.create({
+    const response = await client.messages.create({
       model: MODEL,
       max_tokens: 4096,
       system: SYSTEM_PROMPT,
@@ -184,9 +179,6 @@ async function findInitiativesForLocation(location) {
       break;
     }
 
-    // Only client-side tools (record_initiative) need a tool_result to
-    // unblock the conversation, web_search is a server tool, handled
-    // entirely by Anthropic within the same response.
     if (recordCalls.length > 0) {
       messages.push({
         role: 'user',
@@ -350,6 +342,68 @@ async function runScrape() {
   }
 }
 
+export async function scrapeInitiatives(anthropicClient, locations = DEFAULT_LOCATIONS) {
+  const allEntries = [];
+  console.log(`Zoeken naar initiatieven in: ${locations.join(', ')}`);
+
+  for (const location of locations) {
+    console.log(`\n→ ${location}`);
+    try {
+      const entries = await findInitiativesForLocation(location, anthropicClient);
+      console.log(`  ${entries.length} initiatief(ven) gevonden.`);
+      allEntries.push(...entries);
+    } catch (err) {
+      console.error(`  Fout bij zoeken naar ${location}:`, err.message);
+    }
+  }
+
+  if (allEntries.length === 0) {
+    console.log('\nGeen initiatieven gevonden.');
+    return { saved: 0, failed: 0, total: 0 };
+  }
+
+  console.log(`\nGeocoden van ${allEntries.length} initiatieven...`);
+  const rows = [];
+  for (const entry of allEntries) {
+    if (!VALID_CATEGORIES.includes(entry.category)) {
+      entry.category = 'anders';
+    }
+    const coords = await geocode(entry);
+    if (!coords) {
+      console.warn(`  Kon geen locatie vinden voor "${entry.name}" (${entry.city}), overgeslagen.`);
+      continue;
+    }
+    rows.push({
+      name: entry.name,
+      description: entry.description,
+      category: entry.category,
+      address: entry.address ?? null,
+      postcode: entry.postcode ?? null,
+      city: entry.city,
+      source_url: entry.source_url ?? null,
+      latitude: coords.latitude,
+      longitude: coords.longitude,
+    });
+  }
+
+  if (rows.length === 0) {
+    console.log('Niets kon gegeocodeerd worden.');
+    return { saved: 0, failed: 0, total: 0 };
+  }
+
+  const backupPath = writeBackup(rows);
+  console.log(`Backup weggeschreven naar ${backupPath}.`);
+
+  console.log(`Uploaden naar Supabase...`);
+  const result = await uploadRows(rows);
+  console.log(`\nKlaar. ${result.saved}/${result.total} initiatieven opgeslagen/bijgewerkt in Supabase.`);
+  if (result.failed > 0) {
+    console.log(`${result.failed} rij(en) faalden. Herstel met: --from-backup ${backupPath}`);
+  }
+
+  return result;
+}
+
 async function main() {
   if (fromBackupPath) {
     await runFromBackup(fromBackupPath);
@@ -358,4 +412,6 @@ async function main() {
   }
 }
 
-main();
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main();
+}
