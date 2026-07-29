@@ -1,4 +1,5 @@
-import type { Initiative } from '../types/initiative';
+import type { Initiative, InitiativeCategory } from '../types/initiative';
+import { CategoryFilter } from './CategoryFilter';
 import { InitiativeCard } from './InitiativeCard';
 
 interface ResultsSectionProps {
@@ -7,6 +8,8 @@ interface ResultsSectionProps {
   activePostcode: string | null;
   radiusKm: number;
   onClearFilter: () => void;
+  selectedCategories: InitiativeCategory[];
+  onToggleCategory: (category: InitiativeCategory) => void;
 }
 
 export function ResultsSection({
@@ -15,10 +18,16 @@ export function ResultsSection({
   activePostcode,
   radiusKm,
   onClearFilter,
+  selectedCategories,
+  onToggleCategory,
 }: ResultsSectionProps) {
+  const hasCategoryFilter = selectedCategories.length > 0;
+
   return (
     <section className="results-section">
       <div className="container">
+        <CategoryFilter selected={selectedCategories} onToggle={onToggleCategory} />
+
         <div className="results-meta">
           {activePostcode && (
             <span className="filter-chip">
@@ -37,8 +46,7 @@ export function ResultsSection({
 
         {!loading && initiatives.length === 0 && (
           <p className="results-status">
-            Geen initiatieven gevonden{activePostcode ? ' binnen deze straal' : ''}.
-            {activePostcode && ' Probeer de zoekstraal te vergroten.'}
+            {emptyResultsMessage(Boolean(activePostcode), hasCategoryFilter)}
           </p>
         )}
 
@@ -52,4 +60,17 @@ export function ResultsSection({
       </div>
     </section>
   );
+}
+
+function emptyResultsMessage(hasLocationFilter: boolean, hasCategoryFilter: boolean): string {
+  if (hasLocationFilter && hasCategoryFilter) {
+    return 'Geen initiatieven gevonden. Probeer de zoekstraal te vergroten of pas de filters aan.';
+  }
+  if (hasLocationFilter) {
+    return 'Geen initiatieven gevonden binnen deze straal. Probeer de zoekstraal te vergroten.';
+  }
+  if (hasCategoryFilter) {
+    return 'Geen initiatieven gevonden voor de gekozen type(s) activiteit. Pas de filters aan.';
+  }
+  return 'Geen initiatieven gevonden.';
 }

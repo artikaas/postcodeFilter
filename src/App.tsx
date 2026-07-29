@@ -14,6 +14,8 @@ function App() {
     search,
     clearSearch,
     initiatives,
+    selectedCategories,
+    toggleCategory,
     loading,
     error,
   } = useInitiativeSearch();
@@ -37,6 +39,8 @@ function App() {
         activePostcode={activePostcode}
         radiusKm={radiusKm}
         onClearFilter={clearSearch}
+        selectedCategories={selectedCategories}
+        onToggleCategory={toggleCategory}
       />
     </>
   );

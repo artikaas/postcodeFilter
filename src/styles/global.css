@@ -320,6 +320,34 @@ a {
   flex: 1;
 }
 
+.category-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-bottom: 20px;
+}
+
+.category-filter-chip {
+  border: 1.5px solid #e7cfd2;
+  background: #fff;
+  color: var(--color-maroon);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.category-filter-chip:hover {
+  border-color: var(--color-pink);
+}
+
+.category-filter-chip.active {
+  background: var(--color-maroon);
+  border-color: var(--color-maroon);
+  color: #fff;
+}
+
 .results-meta {
   display: flex;
   align-items: center;
@@ -393,6 +421,13 @@ a {
   justify-content: center;
   font-size: 40px;
   color: #fff;
+  overflow: hidden;
+}
+
+.initiative-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .initiative-card-body {

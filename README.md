@@ -1,9 +1,11 @@
 # In jouw buurt: postcode filter (concept V0.1)
 
-Prototype voor de "Zelf Zorgen, Samen Doen" campagne: bezoekers vullen hun
-postcode in en zien welke ouderenzorg-initiatieven (gezelschap, spelletjes,
-koffie-inloop, bingo) bij hen in de buurt te vinden zijn. Zonder postcode
-worden alle initiatieven getoond.
+Prototype voor de "Zelf Zorgen, Samen Doen" campagne: bewoners van een stad
+of dorp vullen hun postcode in en zien waar zij in de buurt kunnen
+bijdragen aan initiatieven voor ouderen (gezelschap, spelletjes,
+koffie-inloop, bingo), bijvoorbeeld als vrijwilliger of maatje. Zonder
+postcode worden alle initiatieven getoond, en met de type-filter kun je
+verder inperken naar wat bij je past.
 
 > Dit is een functioneel concept/eerste versie, geen klantklare productie.
 > Vormgeving en copy moeten nog langs de creatief eindverantwoordelijke en
@@ -27,6 +29,9 @@ worden alle initiatieven getoond.
   binnen de straal teruggeeft, dichtstbijzijnde eerst.
 - Standaard straal is **5 km**, met een slider om te verruimen tot **20 km**.
   De slider vraagt live opnieuw op zonder de postcode opnieuw te geocoderen.
+- Filter op type activiteit (gezelschap, spelletjes, koffie, bingo, anders)
+  via de chips boven de resultaten. Meerdere types tegelijk aan te vinken,
+  filtert client-side op de al opgehaalde resultaten.
 
 ## Setup
 
@@ -62,29 +67,63 @@ worden alle initiatieven getoond.
 ## Initiatieven verzamelen (scraper)
 
 `scripts/scrape-initiatives.mjs` gebruikt de Claude API met de web search
-tool om per opgegeven plaats te zoeken naar echte, bestaande
-oudereninitiatieven, en zet de resultaten (na geocoding via PDOK) in de
-Supabase-tabel. Het draait bewust los van de app, nooit vanuit de browser,
-omdat het de service-role key en een Anthropic API-key gebruikt.
+tool om per opgegeven plaats te zoeken naar initiatieven waar bewoners zich
+als vrijwilliger/maatje kunnen inzetten voor ouderen, en zet de resultaten
+(na geocoding via PDOK) in de Supabase-tabel. Het draait bewust los van de
+app, nooit vanuit de browser, omdat het de service-role key en een
+Anthropic API-key gebruikt.
+
+Standaard doorzoekt het script Twente, van de grotere steden tot kleinere
+kernen (Enschede, Almelo, Hengelo, Oldenzaal, Rijssen, Wierden, Borne, Goor,
+Haaksbergen, Ootmarsum, Denekamp, Tubbergen, Vriezenveen, Weerselo, Losser,
+Delden). Geef eigen plaatsen mee als je een ander gebied wil:
 
 Met Docker:
 ```bash
-docker compose run --rm scraper "Ootmarsum" "Enschede" "Almelo"
-# of zonder argumenten voor de standaardlijst (Twente-regio)
+docker compose run --rm scraper "Amsterdam" "Utrecht"
+# of zonder argumenten voor de standaardlijst (Twente)
 docker compose run --rm scraper
 ```
 
 Zonder Docker:
 ```bash
-npm run scrape -- "Ootmarsum" "Enschede" "Almelo"
+npm run scrape -- "Amsterdam" "Utrecht"
 npm run scrape
 ```
+
+**Bronbetrouwbaarheid:** de AI slaat een initiatief alleen op als de bron
+recent is (≤ 6 maanden) of van een herkenbare zorg-/welzijnsinstantie komt
+(zorgorganisatie, gemeente, welzijnsstichting, ouderenbond,
+vrijwilligerscentrale e.d.). Dit is een instructie in de system prompt
+(`SYSTEM_PROMPT` in het script), geen apart databaseveld of UI-badge, dus
+controleer bij twijfel altijd zelf de bron-URL in de kaart.
 
 De AI verzint geen initiatieven: elk resultaat moet een bron-URL hebben. Dit
 is een prototype-aanpak, controleer voor klantgebruik altijd de gevonden
 data en de auteursrechten/licenties van eventueel overgenomen tekst of
 beeld, en toets aan het huidige gebruiksvoorwaardenbeleid van de bronnen
 voordat dit live gaat.
+
+## Afbeeldingen bij de kaarten
+
+`src/lib/categoryImages.ts` bevat per categorie een paar handmatig
+gecureerde, thematisch passende Unsplash-foto's. De `url`-velden staan nu
+bewust leeg: onze eigen fetch-tools worden door Unsplash's botbescherming
+geblokkeerd, dus we konden de directe CDN-links niet vanuit deze omgeving
+verifiëren. Zolang `url` leeg is, valt een kaart automatisch terug op de
+emoji/kleurvlak-placeholder.
+
+Zo vul je de echte foto's in (kost een paar minuten, jouw browser heeft
+deze blokkade niet):
+1. Open de `sourceUrl` van een foto uit `categoryImages.ts`.
+2. Controleer de licentie op die pagina: moet **"Unsplash License"** zijn,
+   niet het betaalde **"Unsplash+"** (Getty Images).
+3. Rechtsklik op de foto → **"Afbeeldingsadres kopiëren"**.
+4. Plak die link in het bijbehorende `url`-veld.
+
+Voeg gerust extra foto's per categorie toe, `pickCategoryImage()` kiest
+deterministisch (op basis van het initiatief-id) uit de hele pool, zodat
+elk initiatief steeds dezelfde foto toont.
 
 ## Scripts
 
@@ -98,7 +137,7 @@ voordat dit live gaat.
 ## Volgende stappen
 
 - Vervang de placeholder-copy in de zoekpaneel-tekst door eindredactie.
-- Vervang de emoji/kleurvlak-placeholders in de kaarten door echte
-  fotografie (let op gebruiksrechten).
+- Vul de echte Unsplash-links in `src/lib/categoryImages.ts` in (zie
+  "Afbeeldingen bij de kaarten" hierboven).
 - Overweeg een cron/Edge Function om het scraperscript periodiek te draaien
   in plaats van handmatig.

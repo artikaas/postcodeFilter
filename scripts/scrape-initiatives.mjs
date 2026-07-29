@@ -18,7 +18,26 @@ import 'dotenv/config';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
 
-const DEFAULT_LOCATIONS = ['Ootmarsum', 'Enschede', 'Almelo', 'Hengelo'];
+// Twente, van grotere steden tot kleinere kernen, zodat ook plattelands-
+// initiatieven meegenomen worden. Vul aan met eigen plaatsen via CLI-argumenten.
+const DEFAULT_LOCATIONS = [
+  'Enschede',
+  'Almelo',
+  'Hengelo',
+  'Oldenzaal',
+  'Rijssen',
+  'Wierden',
+  'Borne',
+  'Goor',
+  'Haaksbergen',
+  'Ootmarsum',
+  'Denekamp',
+  'Tubbergen',
+  'Vriezenveen',
+  'Weerselo',
+  'Losser',
+  'Delden',
+];
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5';
 const MAX_TOOL_ROUNDS = 6;
 const SEARCH_RADIUS_HINT_KM = 15;
@@ -75,15 +94,30 @@ const RECORD_TOOL = {
 };
 
 const SYSTEM_PROMPT = `Je bent een zorgvuldige onderzoeksassistent voor de Nederlandse zorgsector.
-Je zoekt via web search naar ECHTE, bestaande lokale initiatieven die gericht zijn op
-het bestrijden van eenzaamheid bij ouderen: gezelschap/maatjesprojecten, spelletjesmiddagen,
-koffie-inloop, bingoavonden en vergelijkbare sociale activiteiten voor senioren.
 
-Regels:
+Doelgroep: bewoners van een stad of dorp die willen BIJDRAGEN aan het bestrijden
+van eenzaamheid bij ouderen, bijvoorbeeld als vrijwilliger, maatje of incidentele
+helper. Zoek daarom niet alleen naar activiteiten die al draaien, maar specifiek
+naar initiatieven waar nieuwe vrijwilligers, maatjes of helpers welkom zijn of
+gezocht worden: gezelschap/maatjesprojecten, spelletjesmiddagen, koffie-inloop,
+bingoavonden en vergelijkbare sociale activiteiten voor senioren.
+
+Bronregels (belangrijk, ter controle van actualiteit en betrouwbaarheid):
+- Gebruik een bron alleen als deze aan minstens één van deze twee eisen voldoet:
+  1) De bron (pagina, artikel, agenda-item) is van de afgelopen 6 maanden, OF
+  2) De bron komt van een herkenbare zorg- of welzijnsinstantie (bijv. een
+     zorgorganisatie, gemeente, welzijnsstichting, ouderenbond, vrijwilligers-
+     centrale, kerkelijke of maatschappelijke organisatie met ouderenzorgtaak).
+- Voldoet een bron aan geen van beide, sla dat initiatief dan niet op, ook niet
+  als het er inhoudelijk passend uitziet.
+- Twijfel je over de actualiteit of legitimiteit van een bron, sla het initiatief
+  dan niet op.
+
+Overige regels:
 - Gebruik uitsluitend informatie die je met web search hebt gevonden. Verzin nooit
   initiatieven, adressen of details.
 - Roep de tool "record_initiative" precies één keer aan per uniek, gevonden initiatief.
-- Sla alleen initiatieven op waar je een bron-URL van hebt.
+- Sla alleen initiatieven op waar je een bron-URL van hebt die aan de bronregels voldoet.
 - Als je geen (voldoende) initiatieven vindt, roep dan simpelweg minder tools aan,
   verzin er geen bij om aan een aantal te voldoen.
 - Antwoord verder niet in lopende tekst; gebruik alleen de tool.`;
@@ -93,9 +127,11 @@ async function findInitiativesForLocation(location) {
     {
       role: 'user',
       content:
-        `Zoek naar 3 tot 6 echte, bestaande initiatieven voor ouderen ` +
-        `(gezelschap, spelletjesmiddag, koffie-inloop, bingo, of vergelijkbaar) ` +
-        `in en rond ${location} (Nederland), binnen ongeveer ${SEARCH_RADIUS_HINT_KM} km. ` +
+        `Zoek naar 3 tot 6 echte, bestaande initiatieven waar bewoners van ` +
+        `${location} (Nederland) en omgeving (binnen ongeveer ${SEARCH_RADIUS_HINT_KM} km) ` +
+        `zich als vrijwilliger, maatje of helper kunnen inzetten voor ouderen ` +
+        `(gezelschap, spelletjesmiddag, koffie-inloop, bingo, of vergelijkbaar). ` +
+        `Houd je aan de bronregels uit de systeeminstructie. ` +
         `Sla elk gevonden initiatief op met de record_initiative tool.`,
     },
   ];

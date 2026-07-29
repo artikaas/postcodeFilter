@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { CATEGORY_LABELS, type Initiative } from '../types/initiative';
+import { pickCategoryImage } from '../lib/categoryImages';
 
 const CATEGORY_STYLE: Record<Initiative['category'], { emoji: string; bg: string }> = {
   gezelschap: { emoji: '🤝', bg: 'linear-gradient(135deg,#ec6ea3,#6b1f3f)' },
@@ -13,13 +15,28 @@ interface InitiativeCardProps {
 }
 
 export function InitiativeCard({ initiative }: InitiativeCardProps) {
+  const [imageFailed, setImageFailed] = useState(false);
   const style = CATEGORY_STYLE[initiative.category] ?? CATEGORY_STYLE.anders;
+  const image = pickCategoryImage(initiative);
+  const showPhoto = Boolean(image?.url) && !imageFailed;
   const location = [initiative.city, initiative.postcode].filter(Boolean).join(' · ');
 
   return (
     <article className="initiative-card">
-      <div className="initiative-card-image" style={{ background: style.bg }}>
-        <span aria-hidden="true">{style.emoji}</span>
+      <div
+        className="initiative-card-image"
+        style={showPhoto ? undefined : { background: style.bg }}
+      >
+        {showPhoto ? (
+          <img
+            src={image!.url}
+            alt=""
+            title={`Foto: ${image!.credit} / Unsplash`}
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <span aria-hidden="true">{style.emoji}</span>
+        )}
       </div>
       <div className="initiative-card-body">
         <div className="initiative-card-tags">

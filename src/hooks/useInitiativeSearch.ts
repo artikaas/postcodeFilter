@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { geocodePostcode, normalizePostcode } from '../lib/geocode';
-import type { Initiative } from '../types/initiative';
+import type { Initiative, InitiativeCategory } from '../types/initiative';
 
 export const MIN_RADIUS_KM = 5;
 export const MAX_RADIUS_KM = 20;
@@ -22,6 +22,7 @@ export function useInitiativeSearch() {
   const [initiatives, setInitiatives] = useState<Initiative[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<InitiativeCategory[]>([]);
 
   // Guards against a slow, stale request overwriting a newer one.
   const requestId = useRef(0);
@@ -115,6 +116,17 @@ export function useInitiativeSearch() {
     fetchAll();
   }, [fetchAll]);
 
+  const toggleCategory = useCallback((category: InitiativeCategory) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
+    );
+  }, []);
+
+  const filteredInitiatives = useMemo(() => {
+    if (selectedCategories.length === 0) return initiatives;
+    return initiatives.filter((initiative) => selectedCategories.includes(initiative.category));
+  }, [initiatives, selectedCategories]);
+
   return {
     postcodeInput,
     setPostcodeInput,
@@ -124,7 +136,9 @@ export function useInitiativeSearch() {
     activeLocationLabel: activeLocation?.label ?? null,
     search,
     clearSearch,
-    initiatives,
+    initiatives: filteredInitiatives,
+    selectedCategories,
+    toggleCategory,
     loading,
     error,
   };

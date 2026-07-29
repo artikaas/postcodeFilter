@@ -30,16 +30,17 @@ export function SearchPanel({
       <div className="container">
         <div className="search-panel">
           <h2>
-            Vind een initiatief
+            Vind een manier om
             <br />
-            bij jou in de buurt
+            bij te dragen
           </h2>
 
           <div>
             <p className="copy">
-              Vul je postcode in en we laten zien welke initiatieven voor
-              ouderen, zoals gezelschap, een spelletje of een kop koffie, er
-              bij jou in de buurt zijn. Geen postcode? Dan zie je alle
+              Vul je postcode in en we laten zien waar jij in de buurt kunt
+              bijdragen aan ouderen die hulp of gezelschap kunnen gebruiken,
+              zoals gezelschap houden, meespelen bij een spelletjesmiddag of
+              helpen bij een koffie-inloop. Geen postcode? Dan zie je alle
               initiatieven.
             </p>
 
