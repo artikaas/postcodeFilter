@@ -95,7 +95,7 @@ export function useInitiativeSearch() {
       }
       setRadiusKm(DEFAULT_RADIUS_KM);
       // Setting activeLocation triggers the radius-search effect below,
-      // which does the actual fetchNearby call — avoids firing it twice.
+      // which does the actual fetchNearby call, avoids firing it twice.
       setActiveLocation({
         postcode: normalizePostcode(trimmed),
         label: result.label,

@@ -1,4 +1,4 @@
-# In jouw buurt — postcode filter (concept V0.1)
+# In jouw buurt: postcode filter (concept V0.1)
 
 Prototype voor de "Zelf Zorgen, Samen Doen" campagne: bezoekers vullen hun
 postcode in en zien welke ouderenzorg-initiatieven (gezelschap, spelletjes,
@@ -11,12 +11,12 @@ worden alle initiatieven getoond.
 
 ## Stack
 
-- **React + TypeScript + Vite** — frontend
-- **Supabase (Postgres)** — dataopslag van initiatieven, met een SQL-functie
+- **React + TypeScript + Vite**, frontend
+- **Supabase (Postgres)**, dataopslag van initiatieven, met een SQL-functie
   voor straal-zoekopdrachten (haversine, geen PostGIS-extensie nodig)
-- **PDOK Locatieserver** — gratis, keyless geocoding van Nederlandse
+- **PDOK Locatieserver**, gratis, keyless geocoding van Nederlandse
   postcodes naar coördinaten
-- **Claude (Anthropic API) met web search** — los scraperscript dat echte
+- **Claude (Anthropic API) met web search**, los scraperscript dat echte
   initiatieven opzoekt en in Supabase zet
 
 ## Hoe de zoekfilter werkt
@@ -33,18 +33,27 @@ worden alle initiatieven getoond.
 1. **Supabase-project aanmaken** op [supabase.com](https://supabase.com)
    (gratis tier is voldoende voor dit prototype).
 2. Draai de migratie in de Supabase SQL-editor (of via de Supabase CLI):
-   - `supabase/migrations/0001_init.sql` — tabel `initiatives` + de
+   - `supabase/migrations/0001_init.sql`, tabel `initiatives` + de
      `nearby_initiatives`-functie.
    - Optioneel voor een snelle demo zonder scraper te draaien:
      `supabase/seed/seed_demo.sql` (vijf fictieve voorbeeldinitiatieven rond
-     Enschede — vervang door echte data voor een klantpresentatie).
+     Enschede, vervang door echte data voor een klantpresentatie).
 3. Kopieer `.env.example` naar `.env` en vul in:
-   - `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` — uit je Supabase-project
+   - `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`, uit je Supabase-project
      (Settings → API).
-   - `SUPABASE_SERVICE_ROLE_KEY` — alleen nodig voor het scraperscript,
+   - `SUPABASE_SERVICE_ROLE_KEY`, alleen nodig voor het scraperscript,
      **nooit** in de frontend gebruiken.
-   - `ANTHROPIC_API_KEY` — alleen nodig voor het scraperscript.
-4. Installeer dependencies en start de dev-server:
+   - `ANTHROPIC_API_KEY`, alleen nodig voor het scraperscript.
+4. Draai de app, kies één van de twee:
+
+   **Optie A, met Docker (aanbevolen als je niets op je laptop wil installeren):**
+   ```bash
+   docker compose up --build
+   ```
+   Open daarna [http://localhost:5173](http://localhost:5173). Stoppen met
+   `Ctrl+C`, opruimen met `docker compose down`.
+
+   **Optie B, direct met Node/npm op je systeem:**
    ```bash
    npm install
    npm run dev
@@ -55,17 +64,24 @@ worden alle initiatieven getoond.
 `scripts/scrape-initiatives.mjs` gebruikt de Claude API met de web search
 tool om per opgegeven plaats te zoeken naar echte, bestaande
 oudereninitiatieven, en zet de resultaten (na geocoding via PDOK) in de
-Supabase-tabel. Het draait bewust los van de app — nooit vanuit de browser,
+Supabase-tabel. Het draait bewust los van de app, nooit vanuit de browser,
 omdat het de service-role key en een Anthropic API-key gebruikt.
 
+Met Docker:
+```bash
+docker compose run --rm scraper "Ootmarsum" "Enschede" "Almelo"
+# of zonder argumenten voor de standaardlijst (Twente-regio)
+docker compose run --rm scraper
+```
+
+Zonder Docker:
 ```bash
 npm run scrape -- "Ootmarsum" "Enschede" "Almelo"
-# of zonder argumenten voor de standaardlijst (Twente-regio)
 npm run scrape
 ```
 
 De AI verzint geen initiatieven: elk resultaat moet een bron-URL hebben. Dit
-is een prototype-aanpak — controleer voor klantgebruik altijd de gevonden
+is een prototype-aanpak, controleer voor klantgebruik altijd de gevonden
 data en de auteursrechten/licenties van eventueel overgenomen tekst of
 beeld, en toets aan het huidige gebruiksvoorwaardenbeleid van de bronnen
 voordat dit live gaat.

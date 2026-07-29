@@ -38,7 +38,7 @@ export function SearchPanel({
           <div>
             <p className="copy">
               Vul je postcode in en we laten zien welke initiatieven voor
-              ouderen — zoals gezelschap, een spelletje of een kop koffie — er
+              ouderen, zoals gezelschap, een spelletje of een kop koffie, er
               bij jou in de buurt zijn. Geen postcode? Dan zie je alle
               initiatieven.
             </p>

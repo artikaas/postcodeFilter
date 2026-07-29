@@ -1,4 +1,4 @@
--- Zelf Zorgen, Samen Doen — "In jouw buurt" postcode filter
+-- Zelf Zorgen, Samen Doen, "In jouw buurt" postcode filter
 -- Prototype schema: elderly-care/companionship initiatives + a haversine-based
 -- radius search function. No PostGIS/earthdistance extension required, so this
 -- runs on any Supabase project (including the free tier) without extra setup.

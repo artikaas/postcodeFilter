@@ -1,0 +1,25 @@
+services:
+  # Vite dev-server, bereikbaar op http://localhost:5173
+  web:
+    build: .
+    ports:
+      - '5173:5173'
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev -- --host 0.0.0.0
+
+  # Los te draaien: vult Supabase via Claude web search.
+  # Gebruik: docker compose run --rm scraper "Ootmarsum" "Enschede"
+  scraper:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /app/node_modules
+    profiles:
+      - tools
+    entrypoint: ['npm', 'run', 'scrape', '--']

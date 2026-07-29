@@ -84,7 +84,7 @@ Regels:
   initiatieven, adressen of details.
 - Roep de tool "record_initiative" precies één keer aan per uniek, gevonden initiatief.
 - Sla alleen initiatieven op waar je een bron-URL van hebt.
-- Als je geen (voldoende) initiatieven vindt, roep dan simpelweg minder tools aan —
+- Als je geen (voldoende) initiatieven vindt, roep dan simpelweg minder tools aan,
   verzin er geen bij om aan een aantal te voldoen.
 - Antwoord verder niet in lopende tekst; gebruik alleen de tool.`;
 
@@ -126,7 +126,7 @@ async function findInitiativesForLocation(location) {
     }
 
     // Only client-side tools (record_initiative) need a tool_result to
-    // unblock the conversation — web_search is a server tool, handled
+    // unblock the conversation, web_search is a server tool, handled
     // entirely by Anthropic within the same response.
     if (recordCalls.length > 0) {
       messages.push({

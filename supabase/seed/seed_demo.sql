@@ -1,7 +1,7 @@
 -- Optional demo data so the prototype has something to show before the
 -- scraper (scripts/scrape-initiatives.mjs) has been run. Coordinates are
 -- real (Enschede/Twente area, near demo postcode 7512XB) but the
--- initiatives themselves are fictional placeholders — replace with real
+-- initiatives themselves are fictional placeholders, replace with real
 -- scraped data before showing this to a client.
 insert into public.initiatives
   (name, description, category, address, postcode, city, latitude, longitude, source_url)

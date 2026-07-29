@@ -1,4 +1,4 @@
-// Geocoding via de PDOK Locatieserver (Kadaster) — gratis, geen API-key nodig.
+// Geocoding via de PDOK Locatieserver (Kadaster), gratis, geen API-key nodig.
 // Docs: https://www.pdok.nl/restful-api/-/article/pdok-locatieserver
 
 const PDOK_FREE_URL = 'https://api.pdok.nl/bzk/locatieserver/search/v3_1/free';
