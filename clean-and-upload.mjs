@@ -31,9 +31,16 @@ function geocode(entry) {
 }
 
 // GEVERIFIEERDE INITIATIEVEN - ENIG GELDIGE BRON
+// Elke entry is individueel gecontroleerd op: (1) bestaan van de organisatie,
+// (2) inhoud van de bron-URL, (3) juistheid van de gemeente. Twee eerder
+// opgenomen entries bleken bij herverificatie onjuist en zijn verwijderd:
+// "Stichting Samen Eten Oldenzaal" (geen enkele bron bevestigt dat deze
+// stichting bestaat) en "Humanitas Twente - Vrijwilligerscentrale" (bron-URL
+// klopte niet en het enige andere concrete Humanitas Twente-programma,
+// "Samen Actief", richt zich op statushouders, niet op ouderen).
 const VERIFIED_INITIATIVES = [
   {
-    name: "Manna Zorggroep - Maatjesprogram",
+    name: "Manna Zorggroep - Vrijwilligerswerk",
     description: "Eénmalig gekoppeld worden aan een oudere die nog zelfstandig woont. Je biedt gezelschap door bezoeken, gezamenlijke activiteiten en een luisterend oor.",
     category: "gezelschap",
     address: "Boulevard 1945, Enschede",
@@ -46,7 +53,7 @@ const VERIFIED_INITIATIVES = [
     description: "Wekelijks samen activiteiten ondernemen met iemand die eenzaam is. Je helpt tegen sociaal isolement door regelmatig afspraken met je maatje.",
     category: "gezelschap",
     address: "Werkgebied: Enschede, Hengelo, Almelo, Oldenzaal, Borne, Losser",
-    postcode: "7511 AA",
+    postcode: null,
     city: "Enschede",
     source_url: "https://humanitastwente.nl/wat-we-doen/tandem/"
   },
@@ -55,40 +62,40 @@ const VERIFIED_INITIATIVES = [
     description: "Met een collega vrijwilliger bezoeken jullie dementerende ouderen in verzorg- en verpleeghuizen. Via een natuurkoffer en spullen worden herinneringen en gesprekken gestimuleerd.",
     category: "gezelschap",
     address: "Natuurhus Almelo (IVN afdeling)",
-    postcode: "6601 EK",
+    postcode: null,
     city: "Almelo",
     source_url: "https://www.ivn.nl/afdeling/almelo/de-groene-visite/"
   },
   {
-    name: "Almelovoorelkaar - Maatjes platform",
-    description: "Digitale marktplaats waar je jezelf inschrijft voor het maatjeswerk dat bij je past. Veel organisaties zoeken maatjes voor ouderen in Almelo.",
+    name: "Almelovoorelkaar - Maatjesplatform",
+    description: "Digitale marktplaats van Avedan Welzijn waar je jezelf inschrijft voor het maatjeswerk dat bij je past. Ruim de helft van de hulpvragen gaat over gezelschap of een maatje voor een oudere.",
     category: "gezelschap",
     address: "Het Baken 3, Bibliotheek Almelo",
-    postcode: "7607 AA",
+    postcode: null,
     city: "Almelo",
-    source_url: "https://www.almelovoorelkaar.nl/maatjes"
+    source_url: "https://www.almelovoorelkaar.nl/over-almelovoorelkaar"
   },
   {
     name: "Wijkracht - Huiskamer Kulturhus Hasselo",
-    description: "Inloopcentrum voor ouderen met dagelijks koffie, praatjes en krant. Ook regelmatige bingo-avonden (2e en 4e vrijdagavond). Veel activiteiten uitgevoerd door vrijwilligers.",
+    description: "Inloopcentrum voor ouderen met dagelijks koffie en een praatje. Ook regelmatige bingo-avonden (2e en 4e vrijdagavond van de maand). Draait op vrijwilligers.",
     category: "koffie",
     address: "Henry Woodstraat 62, Hengelo (Kulturhus)",
-    postcode: "7574 AA",
+    postcode: null,
     city: "Hengelo",
     source_url: "https://www.wijkracht.nl/nieuws/huiskamer-van-wijkracht-in-kulturhus-hasselo"
   },
   {
-    name: "Wijkracht Hengelo - Maatjes & begeleiding",
-    description: "Vrijwilligers als wandelmaatje, gespreksmaatje of begeleiding. Je helpt ouderen met sociale contacten en dagbesteding in hun buurt.",
+    name: "Wijkracht Hengelo - Een maatje",
+    description: "Vrijwilligers als wandelmaatje, gespreksmaatje of vriendenkring-begeleider. Je helpt ouderen met sociale contacten en dagbesteding in hun buurt.",
     category: "gezelschap",
     address: "Johannaweg 26, Hengelo",
     postcode: "7555 CR",
     city: "Hengelo",
-    source_url: "https://www.wijkrachthengelo.nl/"
+    source_url: "https://www.wijkrachthengelo.nl/ik_zoek/een_maatje/"
   },
   {
     name: "Zorgfederatie Oldenzaal - Vrijwilligers",
-    description: "Zo'n 300 vrijwilligers werken bij instellingen. Je kunt kiezen uit wandelmaatje, gespreksmaatje, hulp bij klusjes, begeleiding naar afspraken of duofiets.",
+    description: "Zo'n 300 vrijwilligers werken bij deze zorgorganisatie. Je kunt kiezen uit wandelmaatje, gespreksmaatje, hulp bij klusjes, begeleiding naar afspraken of samen op de duofiets.",
     category: "gezelschap",
     address: "Fonteinstraat 55, Oldenzaal",
     postcode: "7573 CG",
@@ -96,31 +103,67 @@ const VERIFIED_INITIATIVES = [
     source_url: "https://www.zorgfederatieoldenzaal.nl/portal-over-het-bedrijf/vrijwilligers"
   },
   {
-    name: "Stichting Samen Eten Oldenzaal",
-    description: "Wekelijkse gezamenlijke maaltijden voor ouderen en mensen met beperking. Laagdrempelig initiatief gericht op sociale contacten en gezelligheid.",
-    category: "koffie",
-    address: "Oldenzaal",
-    postcode: "7573 AA",
+    name: "Impuls Oldenzaal - Maaltijden en Open Eettafel",
+    description: "Vrijwilligers bezorgen warme maaltijden aan huis bij ouderen. Daarnaast is er elke dinsdag en donderdag een Open Eettafel voor 60-plussers bij Breedwijs, mede door vrijwilligers georganiseerd.",
+    category: "anders",
+    address: "Helmichstraat 42b, Oldenzaal (Breedwijs, Zuid Berghuizen)",
+    postcode: null,
     city: "Oldenzaal",
-    source_url: "https://www.sociaalpleinoldenzaal.nl/"
+    source_url: "https://www.impuls-oldenzaal.nl/diensten/vrijwilligerswerk/"
   },
   {
-    name: "Rood Kruis Twente - Maatschappelijke zorg",
-    description: "Vrijwilligers die ouderen bezoeken, gezelschap houden en hulp bieden bij dagelijkse activiteiten. Landelijk netwerk met lokale teams.",
+    name: "Rode Kruis Twente",
+    description: "Vrijwilligers die eenzame en kwetsbare ouderen ondersteunen, onder meer via telefooncirkels en contactcirkels waarbij dagelijks of op afgesproken momenten contact wordt gehouden.",
     category: "gezelschap",
     address: "Twente",
     postcode: null,
     city: "Enschede",
-    source_url: "https://www.rodekruis.nl/wat-we-doen/maatschappelijke-zorg"
+    source_url: "https://www.rodekruis.nl/twente/dit-doen-we/"
   },
   {
-    name: "Humanitas Twente - Vrijwilligerscentrale",
-    description: "Matching van vrijwilligers met ouderen voor gezelschap, begeleiding en ondersteuning. Professioneel vrijwilligerswerk.",
+    name: "Fietsmaatjes Borne",
+    description: "Als fietsvrijwilliger maak je op een duo-fiets met elektrische trapondersteuning tochten met iemand die niet meer zelfstandig kan fietsen. Zelf te bepalen hoe vaak: wekelijks, tweewekelijks of in eigen ritme.",
     category: "gezelschap",
-    address: "Twente",
+    address: "Gemeente Borne",
     postcode: null,
-    city: "Almelo",
-    source_url: "https://humanitastwente.nl/vrijwilligers/"
+    city: "Borne",
+    source_url: "https://fietsmaatjesborne.nl/fietsvrijwilliger/"
+  },
+  {
+    name: "Ontmoetingsgroep Noaberpoort",
+    description: "Elke vrijdagochtend een goed gesprek, een potje kaarten en koffie of thee, afgesloten met een warme maaltijd. Vrijwilligers maken deze wekelijkse ontmoeting voor ouderen mogelijk.",
+    category: "koffie",
+    address: "Clubgebouw HSC'21, Haaksbergen",
+    postcode: null,
+    city: "Haaksbergen",
+    source_url: "https://www.rondhaaksbergen.nl/ontmoetingsgroep-van-noaberpoort/"
+  },
+  {
+    name: "Evenmens - Zorgvrijwilliger Rijssen-Holten en Wierden",
+    description: "Koppeling met een individuele hulpvraag van een oudere in de buurt, bijvoorbeeld samen naar buiten, boodschappen of een bezoek aan de kapper. Aandacht, tijd en een luisterend oor staan centraal.",
+    category: "gezelschap",
+    address: "Regio Rijssen-Holten en Wierden",
+    postcode: null,
+    city: "Rijssen",
+    source_url: "https://evenmens.nl/vacatures-vrijwilligers/"
+  },
+  {
+    name: "Losser doet! - Vrijwilligersvacaturebank",
+    description: "Overzicht van vrijwilligerswerk in de gemeente Losser, met regelmatig concrete maatjesvragen van ouderen die op zoek zijn naar gezelschap of een praatje.",
+    category: "gezelschap",
+    address: "Gemeente Losser",
+    postcode: null,
+    city: "Losser",
+    source_url: "https://www.losserdoet.nl/vacaturebank/"
+  },
+  {
+    name: "SWTD - Servicepunt Vrijwillige Inzet Tubbergen",
+    description: "Spreekuur waar inwoners van Tubbergen en Dinkelland die vrijwilligerswerk zoeken, gekoppeld worden aan een passende hulpvraag, waaronder ondersteuning van ouderen.",
+    category: "anders",
+    address: "Bibliotheek Tubbergen",
+    postcode: null,
+    city: "Tubbergen",
+    source_url: "https://swtd.nl/ons-aanbod/vrijwillige-inzet/servicepunt-vrijwillige-inzet"
   },
 ];
 
