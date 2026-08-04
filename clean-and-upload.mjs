@@ -38,6 +38,15 @@ function geocode(entry) {
 // stichting bestaat) en "Humanitas Twente - Vrijwilligerscentrale" (bron-URL
 // klopte niet en het enige andere concrete Humanitas Twente-programma,
 // "Samen Actief", richt zich op statushouders, niet op ouderen).
+//
+// Deze lijst is uitgebreid via een volledige ontdekken -> onafhankelijk
+// verifiëren pipeline (zie scripts/lib/pipeline.mjs voor de geautomatiseerde
+// variant): brede zoekronde per plaats, gevolgd door een aparte, kritische
+// herverificatie van elke vondst. Ook daarbij vielen entries af, o.a. een
+// "Wijkracht Dinkelland - Maatje"-claim (bleek alleen een gemeentebrede
+// aankondiging, geen bevestigd initiatief specifiek in Denekamp) en
+// "Welzijn Ouderen Borne" (verkeerde organisatie toegeschreven, en de
+// frequentie van één activiteit klopte niet met de bron).
 const VERIFIED_INITIATIVES = [
   {
     name: "Manna Zorggroep - Vrijwilligerswerk",
@@ -164,6 +173,497 @@ const VERIFIED_INITIATIVES = [
     postcode: null,
     city: "Tubbergen",
     source_url: "https://swtd.nl/ons-aanbod/vrijwillige-inzet/servicepunt-vrijwillige-inzet"
+  },
+
+  // Enschede
+  {
+    name: "Alifa Welzijn Senioren - Maatje voor een Praatje",
+    description: "Vrijwilligers bieden ouderen fysiek of telefonisch gezelschap via een praatje, wandeling of telefoongesprek, gericht op het doorbreken van eenzaamheid.",
+    category: "gezelschap",
+    address: "Pathmossingel 200, Enschede",
+    postcode: "7513 CM",
+    city: "Enschede",
+    source_url: "https://www.alifa.nl/dienst/82/maatje-voor-een-praatje"
+  },
+  {
+    name: "Alifa Welzijn Senioren - Vind Gezelschap",
+    description: "Besloten online platform van Alifa waarop senioren na een intake door een vrijwilliger in contact komen met iemand om samen te winkelen, wandelen of naar het theater te gaan.",
+    category: "gezelschap",
+    address: "Pathmossingel 200, Enschede",
+    postcode: "7513 CM",
+    city: "Enschede",
+    source_url: "https://www.alifa.nl/dienst/34/vind-gezelschap"
+  },
+  {
+    name: "Livio - Huiskamer van de Wijk Twekkelerveld",
+    description: "Kleinschalige inloopvoorziening voor thuiswonende ouderen waar vrijwilligers als gastheer/gastvrouw zorgen voor een praatje, ontmoeting en gezamenlijke activiteiten.",
+    category: "gezelschap",
+    address: "Schorpioenstraat 33, Enschede",
+    postcode: "7521 HW",
+    city: "Enschede",
+    source_url: "https://www.livio.nl/zorg/dagbesteding/huiskamers-van-de-wijk/"
+  },
+  {
+    name: "Livio - Huiskamer van de Wijk De Hatteler",
+    description: "Wijkhuiskamer van Livio voor thuiswonende ouderen, mede draaiend op vrijwilligers, waar bewoners kunnen binnenlopen voor gezelschap en activiteiten.",
+    category: "gezelschap",
+    address: "Gerard Terborghplein 1, Enschede",
+    postcode: "7545 BB",
+    city: "Enschede",
+    source_url: "https://www.livio.nl/zorg/dagbesteding/huiskamers-van-de-wijk/"
+  },
+  {
+    name: "Buurthuis BEIEN",
+    description: "Buurthuis in Enschede-Noord dat vrijwilligers zoekt om avondactiviteiten zoals bingo te ondersteunen en ontmoetingsgroepen voor (oudere) buurtbewoners te begeleiden.",
+    category: "bingo",
+    address: "Meeuwenstraat 160, Enschede",
+    postcode: "7523 XZ",
+    city: "Enschede",
+    source_url: "https://www.beien.nl/"
+  },
+  {
+    name: "Stroinkshuis - Ouderensoos Het Stroink Bingo",
+    description: "Wekelijkse bingomiddag voor vijftigplussers in wijkcentrum Stroinkshuis, elke woensdag, gedraaid met hulp van vrijwilligers van het buurthuis.",
+    category: "bingo",
+    address: "Het Stroink 64, Enschede",
+    postcode: "7542 GT",
+    city: "Enschede",
+    source_url: "https://www.stroinkshuis.nl/huisgenoten-en-huurders/84/ouderensoos-het-stroink-bingo"
+  },
+  {
+    name: "Stichting Present Enschede - Sociale activiteit",
+    description: "Vrijwilligersmakelaar die groepen koppelt aan eenzame ouderen voor een gezellige activiteit zoals theedrinken, muziek maken of een creatieve middag bij een zorginstelling.",
+    category: "anders",
+    address: "Deurningerstraat 12, Enschede",
+    postcode: "7514 BH",
+    city: "Enschede",
+    source_url: "https://stichtingpresent.nl/enschede/wat-wil-jij-doen/sociale-activiteit/"
+  },
+
+  // Almelo
+  {
+    name: "De Zonnebloem, afdeling Almelo-Schelfhorst",
+    description: "Vrijwilligers brengen huisbezoeken aan ouderen en mensen met een lichamelijke beperking voor gezelschap, een kopje koffie of om samen op stap te gaan.",
+    category: "gezelschap",
+    address: null,
+    postcode: null,
+    city: "Almelo",
+    source_url: "https://www.zonnebloem.nl/almelo-schelfhorst"
+  },
+  {
+    name: "Avedan - Ontmoetingscafé wijkcentrum De Schelf",
+    description: "Elke eerste vrijdag van de maand een gratis inloop met koffie en thee in wijkcentrum De Schelf; Avedan zoekt vrijwilligers die bezoekers stimuleren om mee te doen en contact te maken.",
+    category: "koffie",
+    address: "Binnenhof 51, Almelo",
+    postcode: "7608 KH",
+    city: "Almelo",
+    source_url: "https://www.avedan.nl/activiteit/voor-bijna-al-uw-vragen-de-inloop-schelfhorst/"
+  },
+  {
+    name: "Ouderen Vereniging Almelo (OVA)",
+    description: "Vrijwilligers organiseren en begeleiden ontmoetingsactiviteiten voor senioren zoals excursies, lezingen, wandelingen en gezellige bijeenkomsten.",
+    category: "anders",
+    address: "Mooie Vrouwenweg 27, Almelo",
+    postcode: "7603 PA",
+    city: "Almelo",
+    source_url: "https://ouderenverenigingalmelo.nl/contact/"
+  },
+  {
+    name: "TriviumMeulenbeltZorg - De Greven",
+    description: "Vrijwilligers helpen bewoners van zorgcomplex De Greven bij welzijnsactiviteiten zoals spelletjes, wandelen en koffie schenken, en houden hen gezelschap.",
+    category: "spelletjes",
+    address: "Groene Bruglaan 5, Almelo",
+    postcode: "7602 RE",
+    city: "Almelo",
+    source_url: "https://www.triviummeulenbeltzorg.nl/locaties/de-greven.html"
+  },
+  {
+    name: "Thuisgenoten - De Löchte",
+    description: "Vrijwilligers bieden ondersteuning en gezelschap aan bewoners met (beginnende) dementie bij het ontbijt en bij het koffie- en theeschenken.",
+    category: "koffie",
+    address: "Markgravenweg 1, Almelo",
+    postcode: "7603 NP",
+    city: "Almelo",
+    source_url: "https://www.thuisgenoten.nl/wonen/onze-woonzorglocaties/de-lochte-almelo/"
+  },
+  {
+    name: "ZorgAccent Dagbesteding De Koppel - vrijwilliger gastheer/gastvrouw",
+    description: "Vrijwilliger maakt gemakkelijk contact met ouderen met geheugenproblemen of dementie die de dagbesteding bezoeken, is gastvrij en biedt een luisterend oor.",
+    category: "gezelschap",
+    address: "Brouwerijstraat 1, Almelo",
+    postcode: "7601 BK",
+    city: "Almelo",
+    source_url: "https://www.zorgaccent.nl/vrijwilliger-gastheer-gastvrouw-worden-in-de-koppel-almelo/"
+  },
+  {
+    name: "Stichting Almelo Doet Mee - vrijwilliger activiteiten/bingo",
+    description: "Vrijwilligers voeren gesprekken met Almeloërs met weinig middelen (veel ouderen) en helpen hen via vouchers deelnemen aan sociale activiteiten zoals bingo, koorzang of schilderen.",
+    category: "bingo",
+    address: "Zwanenbelt 39, Almelo",
+    postcode: "7607 JW",
+    city: "Almelo",
+    source_url: "https://almelodoetmee.nl/vrijwilligers/"
+  },
+
+  // Hengelo
+  {
+    name: "Wijkracht Hulpdienst Hengelo - Bezoekdienst tegen eenzaamheid",
+    description: "Vrijwilligers bezoeken mensen thuis voor gezelligheid, een praatje, spelletjes of een wandeling, specifiek gericht tegen eenzaamheid.",
+    category: "gezelschap",
+    address: null,
+    postcode: null,
+    city: "Hengelo",
+    source_url: "https://wijkrachtvrijwilligerswerk.nl/vacatures/vrijwilligers-met-een-warm-hart-gezocht-voor-onze-verschillende-bezoekdiensten"
+  },
+  {
+    name: "Stichting Aandacht voor Elkaar",
+    description: "Organiseert in het Marnixhoes ontspanningsmiddagen, lunches en bingomiddagen voor ouderen en mensen met een lichamelijke beperking om eenzaamheid te verminderen, en zoekt hiervoor vrijwilligers.",
+    category: "bingo",
+    address: "Marnixstraat 1, Hengelo",
+    postcode: null,
+    city: "Hengelo",
+    source_url: "https://www.informatiewijzerhengelo.nl/onderwerp/eenzaamheid-ouderen"
+  },
+  {
+    name: "De Zonnebloem, regio Hengelo",
+    description: "Circa 150 vrijwilligers verdeeld over zes sub-afdelingen bezoeken mensen die door ziekte, handicap of leeftijd dreigen te vereenzamen en ondernemen samen activiteiten.",
+    category: "gezelschap",
+    address: null,
+    postcode: null,
+    city: "Hengelo",
+    source_url: "https://www.zonnebloem.nl/regio-hengelo"
+  },
+  {
+    name: "Koffieochtend Wijkcentrum Slangenbeek",
+    description: "Elke maandagochtend van 10.00 tot 11.00 uur kunnen ouderen uit de wijk Slangenbeek samen koffiedrinken in het wijkcentrum, mede door Wijkracht georganiseerd.",
+    category: "koffie",
+    address: "Straatsburg 5, Hengelo",
+    postcode: "7559 NM",
+    city: "Hengelo",
+    source_url: "https://wijkrachthengelo.nl/slangenbeek/organisaties/10538/wijkcentrum-slangenbeek/agenda?doelgroepen=senioren"
+  },
+  {
+    name: "Wijkcentrum De Sterrentuin - ontmoetingsgroep",
+    description: "Elke dinsdagmiddag een ontmoetingsgroep met koffie/thee en creatieve activiteiten, plus samen koken en eten, gericht op ontmoeting van (oudere) buurtbewoners.",
+    category: "koffie",
+    address: "Neptunusstraat 51, Hengelo",
+    postcode: null,
+    city: "Hengelo",
+    source_url: "https://www.wijkrachthengelo.nl/ouderen/wijkhuyzen-hengelo/wijkcentrum-de-sterrentuin"
+  },
+  {
+    name: "Parochie De Goede Herder Hengelo - bezoekdienst",
+    description: "Vrijwilligers van de vijf geloofsgemeenschappen van deze parochie bezoeken zieke of eenzame ouderen die daar behoefte aan hebben.",
+    category: "gezelschap",
+    address: null,
+    postcode: null,
+    city: "Hengelo",
+    source_url: "https://www.degoedeherderhengelo.nl/senioren/"
+  },
+
+  // Oldenzaal
+  {
+    name: "Koffie Club Oldenzaal",
+    description: "Jonge vrijwilligers gaan wekelijks in tweetallen op huisbezoek bij oudere Oldenzalers voor een kopje koffie, een praatje, een wandeling of een kaartspel.",
+    category: "koffie",
+    address: null,
+    postcode: null,
+    city: "Oldenzaal",
+    source_url: "https://koffiecluboldenzaal.nl/"
+  },
+  {
+    name: "De Zonnebloem, afdeling Oldenzaal",
+    description: "Vrijwilligers brengen huisbezoeken aan mensen met een lichamelijke beperking (waaronder ouderen) en organiseren activiteiten zoals bingo, uitstapjes en feestmiddagen.",
+    category: "gezelschap",
+    address: null,
+    postcode: null,
+    city: "Oldenzaal",
+    source_url: "https://www.zonnebloem.nl/oldenzaal"
+  },
+  {
+    name: "Inloopcafé Le Sourire (KBO Oldenzaal)",
+    description: "Elke eerste vrijdag van de maand een inloopcafé bij Brasserie Le Sourire, waar senioren (lid of geen lid) onder het genot van een drankje gezellig kunnen keuvelen.",
+    category: "koffie",
+    address: "Groote Markt 11, Oldenzaal",
+    postcode: "7571 EC",
+    city: "Oldenzaal",
+    source_url: "https://oldenzaal.kbo-overijssel.nl/activiteiten/inloopcafe-2/"
+  },
+  {
+    name: "Inloopcentrum Kerkstraat - Parochie H. Plechelmus",
+    description: "Vrijwilligers houden het inloopcentrum op maandag- en vrijdagmiddag open, waar iedereen (ook ouderen) vrij binnen kan lopen voor een kopje koffie en een praatje.",
+    category: "koffie",
+    address: "Kerkstraat 1, Oldenzaal",
+    postcode: "7571 EE",
+    city: "Oldenzaal",
+    source_url: "https://www.plechelmus-parochie.nl/openingstijden-inloopcentrum-kerkstraat-oldenzaal/"
+  },
+  {
+    name: "Pastoraal steunpunt Emmaus - Parochie H. Plechelmus",
+    description: "Het Emmaushuis is op donderdag- en vrijdagochtend open voor een kopje koffie of thee en een praatje, gedraaid door vrijwilligers van de parochie.",
+    category: "koffie",
+    address: "Willem Dingeldeinstraat 37, Oldenzaal",
+    postcode: "7576 TS",
+    city: "Oldenzaal",
+    source_url: "https://www.plechelmus-parochie.nl/kerken-in-de-parochie/steunpunt-emmaus/"
+  },
+
+  // Rijssen
+  {
+    name: "De Zonnebloem, afdeling Rijssen",
+    description: "Vrijwilligers bezoeken mensen met een lichamelijke beperking of ziekte (vaak ouderen) aan huis voor gezelschap, een kopje koffie of een uitje zoals wandelen of museumbezoek.",
+    category: "gezelschap",
+    address: null,
+    postcode: null,
+    city: "Rijssen",
+    source_url: "https://www.zonnebloem.nl/rijssen"
+  },
+  {
+    name: "Telefooncirkel - ViaVie Welzijn Rijssen-Holten",
+    description: "Vrijwilligers bellen van maandag t/m zaterdag tussen 8.00 en 9.00 uur mensen die alleen wonen voor een kort, dagelijks controle- en contactmoment tegen eenzaamheid.",
+    category: "anders",
+    address: "Rozengaarde 75A, Rijssen",
+    postcode: "7461 DA",
+    city: "Rijssen",
+    source_url: "https://www.socialekaartrijssen-holten.nl/is/product/146024/197269/invis2/telefooncirkel"
+  },
+  {
+    name: "Via Vorsa - Servicepunt Vrijwilligers",
+    description: "Vrijwilligerscentrale voor Rijssen-Holten die vrijwilligers koppelt aan lokale organisaties, waaronder maatjesprojecten en bezoekwerk bij ouderen.",
+    category: "anders",
+    address: "Rozengaarde 75A, Rijssen",
+    postcode: "7461 DA",
+    city: "Rijssen",
+    source_url: "https://viavorsa.nl/vacatures/vrijwilliger-bij-de-zonnebloem-afdeling-rijssen"
+  },
+
+  // Wierden
+  {
+    name: "De Zonnebloem, afdeling Wierden",
+    description: "Circa 40 vrijwilligers doen bezoekwerk bij ouderen en mensen met een beperking, waaronder samen koffiedrinken, een praatje of een uitje.",
+    category: "gezelschap",
+    address: null,
+    postcode: null,
+    city: "Wierden",
+    source_url: "https://www.zonnebloem.nl/wierden"
+  },
+  {
+    name: "Ouderenvereniging Wierden - Kaarten en Bingo",
+    description: "In het Ontmoetingscentrum wordt elke vrijdagmiddag gekaart en elke tweede woensdag van de maand bingo gespeeld voor senioren; de vereniging draait op vrijwillige inzet.",
+    category: "bingo",
+    address: "Spoorstraat 7, Wierden",
+    postcode: null,
+    city: "Wierden",
+    source_url: "https://www.socialekaartwierden.nl/is/product/154267/220494/invis2/kaarten-en-bingo-sport-voor-senioren"
+  },
+  {
+    name: "WierdenDoet! (Stichting De Welle)",
+    description: "Centraal vrijwilligerspunt voor gemeente Wierden dat inwoners koppelt aan vrijwilligersvacatures, waaronder gezelschap en ondersteuning voor ouderen.",
+    category: "anders",
+    address: null,
+    postcode: null,
+    city: "Wierden",
+    source_url: "https://www.stichtingdewelle.nl/vrijwilligerspunt/wierdendoet/"
+  },
+
+  // Goor
+  {
+    name: "De Zonnebloem, afdeling Goor/Markelo/Diepenheim",
+    description: "Circa 45 vrijwilligers bezoeken mensen die door ziekte, handicap of beperking in een sociaal isolement dreigen te raken, via huisbezoeken en 1-op-1 uitjes.",
+    category: "gezelschap",
+    address: null,
+    postcode: null,
+    city: "Goor",
+    source_url: "https://www.zonnebloem.nl/goor-markelo-diepenheim"
+  },
+  {
+    name: "Salut Welzijn - Luisterend oor",
+    description: "Welzijnsorganisatie voor Hof van Twente die vrijwilligers koppelt aan eenzame ouderen, bijvoorbeeld voor tweewekelijks bezoek met koffie en een gesprek.",
+    category: "koffie",
+    address: "Grotestraat 86, Goor",
+    postcode: "7471 BR",
+    city: "Goor",
+    source_url: "https://salut-welzijn.nl/luisterend-oor/"
+  },
+
+  // Haaksbergen
+  {
+    name: "Wijkracht Haaksbergen - Ouderenwerk en vrijwilligerswerk",
+    description: "Signaleert eenzaamheid bij ouderen in Haaksbergen en koppelt hen aan vrijwilligers; via het servicepunt vrijwilligerswerk kunnen inwoners zich aanmelden als maatje of begeleider.",
+    category: "gezelschap",
+    address: "Blankenburgerstraat 28, Haaksbergen",
+    postcode: "7481 EB",
+    city: "Haaksbergen",
+    source_url: "https://www.wijkrachthaaksbergen.nl/noaberpoort"
+  },
+  {
+    name: "De Zonnebloem, afdeling Haaksbergen",
+    description: "Vrijwilligers leggen huisbezoeken af bij ouderen en mensen met een lichamelijke beperking voor een kop koffie of een uitstapje.",
+    category: "koffie",
+    address: null,
+    postcode: null,
+    city: "Haaksbergen",
+    source_url: "https://www.zonnebloem.nl/haaksbergen"
+  },
+
+  // Borne
+  {
+    name: "De Zonnebloem, afdeling Borne",
+    description: "Bezoekt regelmatig ouderen en mensen met een fysieke beperking voor een goed gesprek, gaat individueel met hen op pad en organiseert gezamenlijke uitstapjes.",
+    category: "gezelschap",
+    address: null,
+    postcode: null,
+    city: "Borne",
+    source_url: "https://www.zonnebloem.nl/borne"
+  },
+
+  // Delden
+  {
+    name: "De Zonnebloem, afdeling Delden-Ambt en Stad",
+    description: "Vrijwilligers bezoeken ouderen en mensen met een lichamelijke beperking in Delden, schenken koffie en thee tijdens activiteiten en helpen mee bij het organiseren van uitjes.",
+    category: "gezelschap",
+    address: null,
+    postcode: null,
+    city: "Delden",
+    source_url: "https://www.zonnebloem.nl/delden"
+  },
+  {
+    name: "Stichting Franje - Dagontmoeting 't Kruispunt",
+    description: "Op de 1e en 3e donderdag van de maand een dagontmoeting met koffie en activiteiten voor ouderen, begeleid door vrijwilligers, om eenzaamheid en isolement te voorkomen.",
+    category: "koffie",
+    address: null,
+    postcode: null,
+    city: "Delden",
+    source_url: "https://www.franje.nl/nieuws-en-activiteiten/kruispunt-naar-lancomode-delden~QZ7Am4tU/"
+  },
+  {
+    name: "Noaberhoes Delden - Eten doe je samen",
+    description: "Wekelijks op maandag organiseren Stichting Franje en v.v. Rood Zwart een gezamenlijke maaltijd voor senioren en alleenstaanden; vrijwilligers doen de inkopen, bereiden en serveren.",
+    category: "anders",
+    address: "Langestraat 155, Delden",
+    postcode: "7491 AE",
+    city: "Delden",
+    source_url: "https://roodzwart.nl/nieuw-wekelijks-eetfestijn-in-het-noaberhoes-in-delden/"
+  },
+
+  // Ootmarsum
+  {
+    name: "Zonnebloem, afdeling Ootmarsum",
+    description: "Coördineert al meer dan 55 jaar bezoekwerk bij ouderen en mensen met een beperking in Ootmarsum; bezoeksters leggen huisbezoekjes af en organiseren ontspanningsmiddagen.",
+    category: "gezelschap",
+    address: null,
+    postcode: null,
+    city: "Ootmarsum",
+    source_url: "https://www.inenomootmarsum.nl/zonnebloem-ootmarsum-55-jaar/"
+  },
+  {
+    name: "Vrijwilliger bij Huize den Oostenborgh",
+    description: "Zorgvilla Huize den Oostenborgh zoekt vrijwilligers die bewoners gezelschap houden, gesprekken voeren en meegaan met uitstapjes, wandelingen of concertbezoeken.",
+    category: "gezelschap",
+    address: "Putstraat 7, Ootmarsum",
+    postcode: "7631 GB",
+    city: "Ootmarsum",
+    source_url: "https://vrijwilligindebuurt.nl/vacatures/vrijwilliger-bij-huize-den-oostenborgh-in-ootmarsum"
+  },
+
+  // Vriezenveen
+  {
+    name: "Zonnebloem, afdeling Vriezenveen/Aadorp/Westerhaar",
+    description: "Vrijwilligers doen bezoekwerk aan huis en gaan mee met deelnemers naar activiteiten, van koffie op het terras tot een excursie, om isolement bij mensen met een beperking te voorkomen.",
+    category: "gezelschap",
+    address: null,
+    postcode: null,
+    city: "Vriezenveen",
+    source_url: "https://www.zonnebloem.nl/vriezenveen-aadorp-westerhaar/vacatures"
+  },
+  {
+    name: "Vrijwilliger huiskamerondersteuning De Weemelanden",
+    description: "Verpleeghuis De Weemelanden zoekt vrijwilligers die in avonden en/of weekenden ondersteuning bieden in de gemeenschappelijke huiskamers van bewoners.",
+    category: "koffie",
+    address: "Koningsweg 24, Vriezenveen",
+    postcode: "7672 GD",
+    city: "Vriezenveen",
+    source_url: "https://www.vrijwilligerswerktwenterand.nl/categorie/gezelschapbezoek"
+  },
+  {
+    name: "Vrijwilliger activiteitenondersteuning De Vriezenhof",
+    description: "Woon- en zorgcentrum De Vriezenhof zoekt vrijwilligers voor ondersteuning bij activiteiten voor bewoners en wijkbewoners, zoals bingo, koffiedrinken en gezellige middagen met optredens.",
+    category: "bingo",
+    address: "Jonkerlaan 5, Vriezenveen",
+    postcode: "7671 GM",
+    city: "Vriezenveen",
+    source_url: "https://www.vrijwilligerswerktwenterand.nl/vacature/gezelschapbezoek/477"
+  },
+
+  // Weerselo
+  {
+    name: "Zonnebloem, afdeling Weerselo",
+    description: "Zet zich in voor mensen met een lichamelijke beperking vanaf 18 jaar; vrijwilligers komen langs voor een kop koffie of gaan samen op pad en organiseren activiteiten.",
+    category: "koffie",
+    address: null,
+    postcode: null,
+    city: "Weerselo",
+    source_url: "https://www.zonnebloem.nl/weerselo"
+  },
+  {
+    name: "Vrijwilligerswerk Woonzorgcentrum Sint Jozef Weerselo",
+    description: "Biedt ontspanningsavonden/-middagen met o.a. koor, muziek, dans, toneel of bingo, waarbij vrijwilligers hun talenten inzetten voor bewoners en buurtbewoners.",
+    category: "bingo",
+    address: null,
+    postcode: null,
+    city: "Weerselo",
+    source_url: "https://www.zorggroepsintmaarten.nl/gemeenschap/dinkelland-tubbergen/sint-jozef-in-weerselo/vrijwilligers/"
+  },
+
+  // Losser
+  {
+    name: "Zonnebloem, afdeling Losser-Overdinkel",
+    description: "Vrijwilligers brengen huisbezoeken en organiseren activiteiten voor mensen met een lichamelijke beperking of mobiliteitsbeperking, vaak ouderen, die daardoor sociaal geïsoleerd kunnen raken.",
+    category: "gezelschap",
+    address: null,
+    postcode: null,
+    city: "Losser",
+    source_url: "https://hallolosser.nl/nieuws/2025/vrijwilligers-zonnebloem-losser-overdinkel-in-het-zonnetje-gezet/"
+  },
+
+  // Tubbergen
+  {
+    name: "SWTD Open eettafel Tubbergen",
+    description: "Stichting Welzijn Tubbergen Dinkelland organiseert een open eettafel waar ouderen een driegangenmaaltijd krijgen en de tijd hebben om een praatje te maken; vrijwillige gastheren/gastvrouwen dekken de tafel en serveren.",
+    category: "anders",
+    address: null,
+    postcode: null,
+    city: "Tubbergen",
+    source_url: "https://swtd.nl/agenda/open-eettafel-tubbergen/"
+  },
+  {
+    name: "KBO Tubbergen",
+    description: "Lokale afdeling van de seniorenvereniging KBO Overijssel die ontmoetings- en ledenactiviteiten voor ouderen organiseert; wie wil helpen bij het organiseren en begeleiden kan contact zoeken met de afdeling.",
+    category: "anders",
+    address: "Viool 8, Tubbergen",
+    postcode: "7651 HH",
+    city: "Tubbergen",
+    source_url: "https://tubbergen.kbo-overijssel.nl/activiteiten/"
+  },
+
+  // Denekamp
+  {
+    name: "SWTD Open eettafel Denekamp - Gerardus Majella",
+    description: "SWTD organiseert samen met de keuken van Aveleijn-Denekamp wekelijks een open eettafel bij wooncomplex Gerardus Majella, met een driegangenmaaltijd en tijd om bij te praten; vrijwillige gastvrouwen/gastheren dekken de tafel en serveren.",
+    category: "anders",
+    address: "Berghumerstraat 15, Denekamp",
+    postcode: "7591 GX",
+    city: "Denekamp",
+    source_url: "https://swtd.nl/agenda/open-eettafel-denekamp-gerardus-majella/"
+  },
+  {
+    name: "Vrijwilliger bij Zorggroep Sint Maarten Denekamp",
+    description: "Zorggroep Sint Maarten zoekt vrijwilligers voor de woonzorgcentra Gerardus Majella en Gravenstate in Denekamp, die hun tijd inzetten voor gezelschap en activiteiten met de bewoners.",
+    category: "gezelschap",
+    address: null,
+    postcode: null,
+    city: "Denekamp",
+    source_url: "https://www.zorggroepsintmaarten.nl/vrijwilligers/waar/maak-jij-het-verschil-als-vrijwilliger-bij-zorggroep-sint-maarten-in-denekamp/"
   },
 ];
 
