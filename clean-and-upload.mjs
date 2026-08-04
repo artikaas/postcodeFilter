@@ -565,6 +565,15 @@ const VERIFIED_INITIATIVES = [
     city: "Ootmarsum",
     source_url: "https://vrijwilligindebuurt.nl/vacatures/vrijwilliger-bij-huize-den-oostenborgh-in-ootmarsum"
   },
+  {
+    name: "Koffie Club Ootmarsum",
+    description: "Jonge vrijwilligers bezoeken ouderen thuis voor een gezellig koffiemoment, en organiseren elk kwartaal een gezamenlijke activiteit zoals een high tea of een uitje. Geïnspireerd op Koffie Club Oldenzaal.",
+    category: "koffie",
+    address: null,
+    postcode: null,
+    city: "Ootmarsum",
+    source_url: "https://koffieclubootmarsum.nl/"
+  },
 
   // Vriezenveen
   {
