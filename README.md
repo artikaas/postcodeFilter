@@ -64,6 +64,40 @@ verder inperken naar wat bij je past.
    npm run dev
    ```
 
+## Deployen naar Vercel
+
+De app is een pure Vite/React frontend die alleen tegen Supabase praat, dus
+hij past zonder aanpassingen op Vercel's gratis hosting. Het scraperscript
+draait nooit mee in deze deploy, dat blijft iets wat je los, lokaal of via
+Docker draait.
+
+1. Push deze repo naar GitHub (al gedaan als je dit leest via de repo).
+2. Ga naar [vercel.com](https://vercel.com) → **Add New… → Project** en
+   importeer de repo. Vercel herkent het Vite-project automatisch
+   (`vercel.json` in de root maakt dat expliciet: build command
+   `npm run build`, output `dist`).
+3. Zet bij **Settings → Environment Variables** precies deze twee variabelen
+   (voor Production **en** Preview):
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+
+   Beide haal je uit je Supabase-project onder Settings → API. Dit zijn de
+   publieke, alleen-lezen sleutels, veilig om in een browserbundel te zetten
+   zolang de RLS-policy op de `initiatives`-tabel read-only staat (zie
+   `supabase/migrations/0001_init.sql`).
+4. **Zet `SUPABASE_SERVICE_ROLE_KEY` en `ANTHROPIC_API_KEY` nooit in de
+   Vercel-projectinstellingen.** Die horen alleen in je lokale `.env` voor
+   het scraperscript, nooit in een frontend-deploy: de service-role key
+   omzeilt RLS en zou bij een front-end build (per ongeluk zonder
+   `VITE_`-prefix meegebouwd) in de browser terecht kunnen komen.
+5. Klik **Deploy**. Elke push naar de branch die je koppelt, triggert
+   automatisch een nieuwe build.
+
+Zonder ingevulde Supabase-data toont de live app een lege resultatenlijst
+(geen crash: `supabaseClient.ts` logt een waarschuwing in de console als de
+env-vars ontbreken). Draai eerst de migratie en minimaal de seed- of
+`clean-and-upload.mjs`-data in je Supabase-project voordat je de link deelt.
+
 ## Initiatieven verzamelen (scraper)
 
 `scripts/scrape-initiatives.mjs` gebruikt de Claude API met de web search

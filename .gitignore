@@ -21,6 +21,9 @@ dist-ssr
 # van gescrapete initiatieven bevatten, horen niet in git)
 scripts/output/
 
+# Vercel CLI-koppeling (lokaal project-id, hoort niet in git)
+.vercel
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
