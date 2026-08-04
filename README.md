@@ -19,7 +19,8 @@ verder inperken naar wat bij je past.
 - **PDOK Locatieserver**, gratis, keyless geocoding van Nederlandse
   postcodes naar coördinaten
 - **Claude (Anthropic API) met web search**, los scraperscript dat echte
-  initiatieven opzoekt en in Supabase zet
+  initiatieven opzoekt (Haiku 4.5), onafhankelijk verifieert (Sonnet 5) en
+  na een technische link-check in Supabase zet
 
 ## Hoe de zoekfilter werkt
 
@@ -100,12 +101,35 @@ env-vars ontbreken). Draai eerst de migratie en minimaal de seed- of
 
 ## Initiatieven verzamelen (scraper)
 
-`scripts/scrape-initiatives.mjs` gebruikt de Claude API met de web search
-tool om per opgegeven plaats te zoeken naar initiatieven waar bewoners zich
-als vrijwilliger/maatje kunnen inzetten voor ouderen, en zet de resultaten
-(na geocoding via PDOK) in de Supabase-tabel. Het draait bewust los van de
-app, nooit vanuit de browser, omdat het de service-role key en een
-Anthropic API-key gebruikt.
+`scripts/scrape-initiatives.mjs` (CLI, eigen `ANTHROPIC_API_KEY`) en
+`scripts/run-with-agent.mjs` (Agent-context, client wordt meegegeven)
+draaien allebei dezelfde pipeline uit `scripts/lib/pipeline.mjs`, in drie
+fasen:
+
+1. **Ontdekken** (model: Haiku 4.5): zoekt per opgegeven plaats zo volledig
+   mogelijk naar initiatieven waar bewoners zich als vrijwilliger/maatje
+   kunnen inzetten voor ouderen. Er is geen maximumaantal per locatie,
+   goedkoop genoeg om breed én diep te zoeken.
+2. **Onafhankelijk verifiëren** (model: Sonnet 5): elke vondst uit stap 1
+   gaat apart, in een verse conversatie zonder de context van de
+   zoekstap, naar een tweede, kritischer model. Dat model doet zelf een
+   eigen web search en controleert of de organisatie echt bestaat, of de
+   bron-URL daadwerkelijk van diezelfde organisatie is (niet een
+   losse/niet te herleiden website), of het initiatief in de opgegeven
+   plaats actief is, en of de beschrijving klopt met de bron. Bij twijfel
+   op één van deze punten: afgewezen, niet opgenomen.
+3. **Technische controle**: een categorie buiten de vaste set
+   (`gezelschap`/`spelletjes`/`koffie`/`bingo`/`anders`) wordt niet
+   stilzwijgend gecorrigeerd maar leidt tot uitsluiting. Daarna volgt een
+   echte HTTP-aanroep op elke bron-URL (link-check): een dode link of
+   tijdelijk onbereikbare pagina houdt een initiatief tegen, ook als de
+   AI-verificatie het al goedkeurde. Pas wat hierna overblijft wordt via
+   PDOK gegeocodeerd en naar Supabase geüpload.
+
+Deze aanpak kost meer tijd en Anthropic-credits dan alleen zoeken (elke
+kandidaat kost een aparte Sonnet-aanroep met een eigen web search), dat is
+bewust: nauwkeurigheid boven snelheid voor de eerste vullingen van de
+database.
 
 Standaard doorzoekt het script Twente, van de grotere steden tot kleinere
 kernen (Enschede, Almelo, Hengelo, Oldenzaal, Rijssen, Wierden, Borne, Goor,
@@ -125,12 +149,20 @@ npm run scrape -- "Amsterdam" "Utrecht"
 npm run scrape
 ```
 
-**Backup en herstel:** vóór elke Supabase-upload schrijft het script de
-gevonden (en gegeocodeerde) initiatieven altijd eerst naar een lokaal
-JSON-bestand in `scripts/output/` (niet in git, staat in `.gitignore`).
-Gaat de upload daarna om wat voor reden dan ook mis, dan ben je het
-gevonden werk en de daaraan bestede AI-credits niet kwijt: upload dezelfde
-data opnieuw zonder opnieuw te zoeken met:
+Modellen zijn te overschrijven via `ANTHROPIC_DISCOVERY_MODEL` /
+`ANTHROPIC_VERIFY_MODEL` in `.env`, voor testen met andere modellen zonder
+de code aan te passen.
+
+**Backup en herstel:** vóór elke Supabase-upload schrijft het script alles
+altijd eerst naar een lokaal JSON-bestand in `scripts/output/` (niet in
+git, staat in `.gitignore`), met twee lijsten: `uploaded` (wat naar
+Supabase ging) én `excluded` (alles wat is afgewezen, met de reden: door de
+verificatiestap, de link-check, een ongeldige categorie, of mislukte
+geocoding). Zo is elke beslissing achteraf te controleren, niet alleen wat
+uiteindelijk live staat. Gaat de upload daarna om wat voor reden dan ook
+mis, dan ben je het gevonden werk en de daaraan bestede AI-credits niet
+kwijt: upload dezelfde data opnieuw zonder opnieuw te zoeken of verifiëren
+met:
 ```bash
 node scripts/scrape-initiatives.mjs --from-backup scripts/output/<bestand>.json
 ```
@@ -138,18 +170,21 @@ Dit gebruikt alleen de Supabase-keys, geen Anthropic API-key nodig.
 Uploaden gebeurt rij voor rij (niet als één batch), zodat één conflicterend
 of foutief resultaat niet de rest blokkeert.
 
-**Bronbetrouwbaarheid:** de AI slaat een initiatief alleen op als de bron
-recent is (≤ 6 maanden) of van een herkenbare zorg-/welzijnsinstantie komt
-(zorgorganisatie, gemeente, welzijnsstichting, ouderenbond,
-vrijwilligerscentrale e.d.). Dit is een instructie in de system prompt
-(`SYSTEM_PROMPT` in het script), geen apart databaseveld of UI-badge, dus
-controleer bij twijfel altijd zelf de bron-URL in de kaart.
+**Bronbetrouwbaarheid:** de ontdekkingsstap slaat een initiatief alleen op
+als de bron recent is (≤ 6 maanden) of van een herkenbare
+zorg-/welzijnsinstantie komt (zorgorganisatie, gemeente, welzijnsstichting,
+ouderenbond, vrijwilligerscentrale e.d.). De verificatiestap controleert dat
+daarna nog eens onafhankelijk, en de link-check bevestigt technisch dat de
+bron ook echt bereikbaar is. Dit blijft een AI- en scriptmatige controle,
+geen garantie: controleer bij twijfel altijd zelf de bron-URL in de kaart.
 
-De AI verzint geen initiatieven: elk resultaat moet een bron-URL hebben. Dit
-is een prototype-aanpak, controleer voor klantgebruik altijd de gevonden
-data en de auteursrechten/licenties van eventueel overgenomen tekst of
-beeld, en toets aan het huidige gebruiksvoorwaardenbeleid van de bronnen
-voordat dit live gaat.
+De AI verzint geen initiatieven: elk resultaat moet een bron-URL hebben, en
+die URL wordt zowel inhoudelijk (verificatiestap) als technisch
+(link-check) gecontroleerd voordat iets in Supabase komt. Dit is en blijft
+een prototype-aanpak: controleer voor klantgebruik altijd de gevonden data
+en de auteursrechten/licenties van eventueel overgenomen tekst of beeld, en
+toets aan het huidige gebruiksvoorwaardenbeleid van de bronnen voordat dit
+live gaat.
 
 ## Afbeeldingen bij de kaarten
 
